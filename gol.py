@@ -36,14 +36,16 @@ class Cell:
         self.shape.setFill(COLOR_CELL_DEAD)
 
     def SetState(self, newState):
-        self.prev_state = self.state;
-        self.state = newState;
+        self.prev_state = self.state
+        self.state = newState
+
+    def GetState(self):
+        return self.state
 
     def Draw(self):
         self.shape.draw(window)
 
     def ReDraw(self):
-
         if self.state == self.prev_state:
             return
         
@@ -70,29 +72,72 @@ def liniarToPos(liniarValue):
     return [hor, ver]
 
 def posToLiniar(x, y):
+
+    if x < 0:
+        x = 0
+    if y < 0:
+        y = 0
+
+    if x >= GAME_RES_Y:
+        x = GAME_RES_Y - 1
+
+    if y >= GAME_RES_X:
+        y = GAME_RES_X - 1
+    
     return x * GAME_RES_X + y;
 
 def updateCellsInternalValue():
-    print("")
+    global uiCells
+    values = []
+    counter = 0
+    for cell in uiCells:
+        aliveNeighbors = 0
+        pos = liniarToPos(counter)
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] - 1, pos[1] - 1)].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0], pos[1] - 1)].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] + 1, pos[1] - 1)].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] - 1, pos[1])].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] + 1, pos[1])].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] - 1, pos[1] + 1)].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0], pos[1] + 1)].GetState()
+        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] + 1, pos[1] + 1)].GetState()
+
+        if cell.GetState() == STATE_CELL_ALIVE:
+            if aliveNeighbors < 2:
+                values.append(0)
+            elif aliveNeighbors == 2 or aliveNeighbors == 3:
+                values.append(1)
+            elif aliveNeighbors > 3:
+                values.append(0)
+        elif aliveNeighbors == 3:
+            values.append(1)
+        else:
+            values.append(0)          
+        
+        counter = counter + 1
+
+    c = 0
+    for cell in uiCells:
+        cell.SetState(values[c])
+        c = c + 1
 
 def updateUICells():
     for cell in uiCells:
         cell.ReDraw()
-
+ 
 def randomizeBoard():
     for cell in uiCells:
         cell.SetState(STATE_CELL_DEAD)
-    for steps in range(0, GAME_RES_X * GAME_RES_Y / GAME_RES_X):
+    for steps in range(0, 30):
         uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
 
 if __name__ == "__main__":
     drawBoard()
-    while True:
-        randomizeBoard()
+    randomizeBoard()
+    updateUICells()
+    GENERATIONS = 2
+    for i in range(0, GENERATIONS):
+        updateCellsInternalValue()
         updateUICells()
-        time.sleep(0.3)
-    #while True:
-    #    updateCellsInternalValue()
-    #    updateUICells()
-    #    time.sleep(0.5)
+        time.sleep(1)
     window.mainloop()
