@@ -1,11 +1,12 @@
 from graphics import *
 import time
 import random
+from threading import Thread
 
-GAME_RES_X = 50
-GAME_RES_Y = 30
+GAME_RES_X = 5
+GAME_RES_Y = 5
 
-CELL_SIZE = 20
+CELL_SIZE = 100
 
 WINDOW_SIZE_X = GAME_RES_X * CELL_SIZE
 WINDOW_SIZE_Y = GAME_RES_Y * CELL_SIZE
@@ -86,22 +87,39 @@ def posToLiniar(x, y):
     
     return x * GAME_RES_X + y;
 
+def getNeighborState(hor, vert):
+    newHor = hor
+    newVert = vert
+
+    if hor < 0:
+        newHor = GAME_RES_X - 1
+    if hor == GAME_RES_X:
+        newHor = 0
+
+    if vert < 0:
+        newVert = GAME_RES_Y - 1
+    if vert == GAME_RES_Y:
+        newVert = 0
+
+    return uiCells[posToLiniar(newHor - 1, newVert - 1)].GetState()
+
 def updateCellsInternalValue():
+    print("Updating cells internal values")
     global uiCells
     values = []
     counter = 0
     for cell in uiCells:
         aliveNeighbors = 0
-        pos = liniarToPos(counter)
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] - 1, pos[1] - 1)].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0], pos[1] - 1)].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] + 1, pos[1] - 1)].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] - 1, pos[1])].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] + 1, pos[1])].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] - 1, pos[1] + 1)].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0], pos[1] + 1)].GetState()
-        aliveNeighbors = aliveNeighbors + uiCells[posToLiniar(pos[0] + 1, pos[1] + 1)].GetState()
-
+        hor, vert = liniarToPos(counter)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert - 1)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor, vert - 1)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert - 1)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert + 1)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor, vert + 1)
+        aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert + 1)
+        print("Cell hor: " + str(hor) + ", vert: " + str(vert) + " has " + str(aliveNeighbors) + " alive neighbors")
         if cell.GetState() == STATE_CELL_ALIVE:
             if aliveNeighbors < 2:
                 values.append(0)
@@ -112,7 +130,7 @@ def updateCellsInternalValue():
         elif aliveNeighbors == 3:
             values.append(1)
         else:
-            values.append(0)          
+            values.append(0)       
         
         counter = counter + 1
 
@@ -128,16 +146,23 @@ def updateUICells():
 def randomizeBoard():
     for cell in uiCells:
         cell.SetState(STATE_CELL_DEAD)
-    for steps in range(0, 30):
-        uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
+    #for steps in range(0, 30):
+    #    uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(1, 2)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(2, 2)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(3, 2)].SetState(STATE_CELL_ALIVE)
 
-if __name__ == "__main__":
+def threaded_function():
     drawBoard()
     randomizeBoard()
     updateUICells()
-    GENERATIONS = 2
-    for i in range(0, GENERATIONS):
-        updateCellsInternalValue()
-        updateUICells()
-        time.sleep(1)
+    time.sleep(2)
+    #while True:
+    updateCellsInternalValue()
+    updateUICells()
+    #    time.sleep(2)
+
+if __name__ == "__main__":
+    thread = Thread(target = threaded_function, args = ( ))
+    thread.start()
     window.mainloop()
