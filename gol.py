@@ -56,6 +56,7 @@ class Cell:
             self.shape.setFill(COLOR_CELL_ALIVE)
 
 def drawBoard():
+    global uiCells
     startX = 0
     startY = 0
     for hor in range(0, GAME_RES_Y):
@@ -88,20 +89,36 @@ def posToLiniar(x, y):
     return x * GAME_RES_X + y;
 
 def getNeighborState(hor, vert):
+    global uiCells
     newHor = hor
     newVert = vert
 
     if hor < 0:
-        newHor = GAME_RES_X - 1
+        return 0
     if hor == GAME_RES_X:
-        newHor = 0
+        return 0
 
     if vert < 0:
-        newVert = GAME_RES_Y - 1
+        return 0
     if vert == GAME_RES_Y:
-        newVert = 0
+        return 0
 
-    return uiCells[posToLiniar(newHor - 1, newVert - 1)].GetState()
+    print("Checking cell hor: " + str(newHor) + ", vert: " + str(newVert) + " with value: " + str(uiCells[posToLiniar(newHor, newVert)].GetState()))
+    return uiCells[posToLiniar(newHor, newVert)].GetState()
+
+def getNrNeighbors(hor, vert):
+    global uiCells
+    aliveNeighbors = 0
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert - 1)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor, vert - 1)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert - 1)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert + 1)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor, vert + 1)
+    aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert + 1)
+
+    return aliveNeighbors
 
 def updateCellsInternalValue():
     print("Updating cells internal values")
@@ -109,17 +126,9 @@ def updateCellsInternalValue():
     values = []
     counter = 0
     for cell in uiCells:
-        aliveNeighbors = 0
         hor, vert = liniarToPos(counter)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert - 1)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor, vert - 1)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert - 1)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor - 1, vert + 1)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor, vert + 1)
-        aliveNeighbors = aliveNeighbors + getNeighborState(hor + 1, vert + 1)
-        print("Cell hor: " + str(hor) + ", vert: " + str(vert) + " has " + str(aliveNeighbors) + " alive neighbors")
+        aliveNeighbors = getNrNeighbors(hor, vert)
+        print("Cell hor: " + str(hor) + ", vert: " + str(vert) + " has state " + str(uiCells[posToLiniar(hor, vert)].GetState()))
         if cell.GetState() == STATE_CELL_ALIVE:
             if aliveNeighbors < 2:
                 values.append(0)
@@ -144,6 +153,7 @@ def updateUICells():
         cell.ReDraw()
  
 def randomizeBoard():
+    global uiCells
     for cell in uiCells:
         cell.SetState(STATE_CELL_DEAD)
     #for steps in range(0, 30):
