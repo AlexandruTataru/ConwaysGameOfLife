@@ -6,7 +6,7 @@ from threading import Thread
 GAME_RES_X = 200
 GAME_RES_Y = 120
 
-CELL_SIZE = 5
+CELL_SIZE = 10
 
 WINDOW_SIZE_X = GAME_RES_X * CELL_SIZE
 WINDOW_SIZE_Y = GAME_RES_Y * CELL_SIZE
@@ -59,8 +59,8 @@ def drawBoard():
     global uiCells
     startX = 0
     startY = 0
-    for hor in range(0, GAME_RES_Y):
-        for ver in range(0, GAME_RES_X):
+    for hor in range(0, int(GAME_RES_Y)):
+        for ver in range(0, int(GAME_RES_X)):
             cell = Cell(startX, startY)
             cell.Draw()
             uiCells.append(cell)
@@ -103,7 +103,7 @@ def getNeighborState(hor, vert):
     if vert == GAME_RES_Y:
         return 0
 
-    return uiCells[posToLiniar(newHor, newVert)].GetState()
+    return uiCells[posToLiniar(int(newHor), int(newVert))].GetState()
 
 def getNrNeighbors(hor, vert):
     global uiCells
@@ -146,12 +146,12 @@ def updateCellsInternalValue():
         c = c + 1
 
 def threaded_draw(start, cells):
-    for i in range(start, start + cells):
+    for i in range(int(start), int(start + cells)):
         uiCells[i].ReDraw()
 
 def updateUICells():
     nrCells = len(uiCells)
-    nrThreads = 20
+    nrThreads = 2
     cellsPerThread = nrCells / nrThreads
     start = 0
     threads = []
@@ -169,7 +169,7 @@ def randomizeBoard():
     global uiCells
     for cell in uiCells:
         cell.SetState(STATE_CELL_DEAD)
-    for steps in range(0, (GAME_RES_X * GAME_RES_Y) / 3):
+    for steps in range(0, int((GAME_RES_X * GAME_RES_Y) / 3)):
         uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
 
 def threaded_function():
