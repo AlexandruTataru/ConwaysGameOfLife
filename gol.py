@@ -3,10 +3,10 @@ import time
 import random
 from threading import Thread
 
-GAME_RES_X = 5
-GAME_RES_Y = 5
+GAME_RES_X = 11
+GAME_RES_Y = 11
 
-CELL_SIZE = 100
+CELL_SIZE = 30
 
 WINDOW_SIZE_X = GAME_RES_X * CELL_SIZE
 WINDOW_SIZE_Y = GAME_RES_Y * CELL_SIZE
@@ -86,7 +86,7 @@ def posToLiniar(x, y):
     if y >= GAME_RES_X:
         y = GAME_RES_X - 1
     
-    return x * GAME_RES_X + y;
+    return y * GAME_RES_X + x;
 
 def getNeighborState(hor, vert):
     global uiCells
@@ -103,7 +103,6 @@ def getNeighborState(hor, vert):
     if vert == GAME_RES_Y:
         return 0
 
-    print("Checking cell hor: " + str(newHor) + ", vert: " + str(newVert) + " with value: " + str(uiCells[posToLiniar(newHor, newVert)].GetState()))
     return uiCells[posToLiniar(newHor, newVert)].GetState()
 
 def getNrNeighbors(hor, vert):
@@ -121,14 +120,12 @@ def getNrNeighbors(hor, vert):
     return aliveNeighbors
 
 def updateCellsInternalValue():
-    print("Updating cells internal values")
     global uiCells
     values = []
     counter = 0
     for cell in uiCells:
         hor, vert = liniarToPos(counter)
         aliveNeighbors = getNrNeighbors(hor, vert)
-        print("Cell hor: " + str(hor) + ", vert: " + str(vert) + " has state " + str(uiCells[posToLiniar(hor, vert)].GetState()))
         if cell.GetState() == STATE_CELL_ALIVE:
             if aliveNeighbors < 2:
                 values.append(0)
@@ -158,19 +155,21 @@ def randomizeBoard():
         cell.SetState(STATE_CELL_DEAD)
     #for steps in range(0, 30):
     #    uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(1, 2)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(2, 2)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(3, 2)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(5, 4)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(4, 5)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(5, 5)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(6, 5)].SetState(STATE_CELL_ALIVE)
+    uiCells[posToLiniar(5, 6)].SetState(STATE_CELL_ALIVE)
 
 def threaded_function():
     drawBoard()
     randomizeBoard()
     updateUICells()
-    time.sleep(2)
-    #while True:
-    updateCellsInternalValue()
-    updateUICells()
-    #    time.sleep(2)
+    time.sleep(1)
+    while True:
+        updateCellsInternalValue()
+        updateUICells()
+        time.sleep(1)
 
 if __name__ == "__main__":
     thread = Thread(target = threaded_function, args = ( ))
