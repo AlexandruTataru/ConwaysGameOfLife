@@ -3,10 +3,10 @@ import time
 import random
 from threading import Thread
 
-GAME_RES_X = 11
-GAME_RES_Y = 11
+GAME_RES_X = 200
+GAME_RES_Y = 120
 
-CELL_SIZE = 30
+CELL_SIZE = 5
 
 WINDOW_SIZE_X = GAME_RES_X * CELL_SIZE
 WINDOW_SIZE_Y = GAME_RES_Y * CELL_SIZE
@@ -80,11 +80,11 @@ def posToLiniar(x, y):
     if y < 0:
         y = 0
 
-    if x >= GAME_RES_Y:
-        x = GAME_RES_Y - 1
+    if x >= GAME_RES_X:
+        x = GAME_RES_X - 1
 
-    if y >= GAME_RES_X:
-        y = GAME_RES_X - 1
+    if y >= GAME_RES_Y:
+        y = GAME_RES_Y - 1
     
     return y * GAME_RES_X + x;
 
@@ -145,33 +145,45 @@ def updateCellsInternalValue():
         cell.SetState(values[c])
         c = c + 1
 
+def threaded_draw(start, cells):
+    for i in range(start, start + cells):
+        uiCells[i].ReDraw()
+
 def updateUICells():
-    for cell in uiCells:
-        cell.ReDraw()
+    nrCells = len(uiCells)
+    nrThreads = 20
+    cellsPerThread = nrCells / nrThreads
+    start = 0
+    threads = []
+    for i in range(0, nrThreads):
+        threads.append(Thread(target = threaded_draw, args = (start, cellsPerThread, )))
+        start = start + cellsPerThread
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
  
 def randomizeBoard():
     global uiCells
     for cell in uiCells:
         cell.SetState(STATE_CELL_DEAD)
-    #for steps in range(0, 30):
-    #    uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(5, 4)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(4, 5)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(5, 5)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(6, 5)].SetState(STATE_CELL_ALIVE)
-    uiCells[posToLiniar(5, 6)].SetState(STATE_CELL_ALIVE)
+    for steps in range(0, (GAME_RES_X * GAME_RES_Y) / 3):
+        uiCells[random.randint(0, GAME_RES_X * GAME_RES_Y - 1)].SetState(STATE_CELL_ALIVE)
 
 def threaded_function():
     drawBoard()
     randomizeBoard()
     updateUICells()
-    time.sleep(1)
+    time.sleep(.1)
     while True:
         updateCellsInternalValue()
         updateUICells()
-        time.sleep(1)
+        time.sleep(.1)
 
 if __name__ == "__main__":
     thread = Thread(target = threaded_function, args = ( ))
     thread.start()
     window.mainloop()
+    window.close()
